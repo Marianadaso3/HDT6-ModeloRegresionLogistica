@@ -52,10 +52,6 @@ datos$Cara <- as.numeric(datos$Estado == "Cara")
 head(datos, n = 3)
 ```
 
-
-
-```
-
 #### 2.Use los mismos conjuntos de entrenamiento y prueba que utilizó en las hojas anteriores.
 ```{r}
 corte <- sample(nrow(datos),nrow(datos)*porcentaje)
@@ -72,3 +68,9 @@ modelo
 ```
 En este modelo lo que queremos saber es si la casa es cara o no, esto mediante las variables **'SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea'**.
 
+#### 4. Analice el modelo. Determine si hay multicolinealidad en las variables, y cuáles son las que aportan al modelo, por su valor de significación. Haga un análisis de correlación de las variables del modelo y especifique si el modelo se adapta bien a los datos. 
+```{r message=FALSE, warning=FALSE}
+#Correlacion de las variables
+ggpairs(datos[,c('SalePrice','GrLivArea','LotFrontage','LotArea','BsmtQual','PoolArea')])
+```
+Como se observa en la grafica anterior la mayoria de las variables tienen una buena correlacion, sobre todo la variable **SalePrice**, no obstante la variable BsmQual y PoolArea, nos indica lo contrario, donde PoolArea tiene una correlacion muy baja. Es por ello que existe la posibilidad de eliminar la variable para la prediccion, sin embargo se decidio dejar por fines didacticos. 
