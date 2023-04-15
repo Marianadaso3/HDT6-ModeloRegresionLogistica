@@ -1,0 +1,27 @@
+rmarkdown::render("main.Rmd")
+
+
+C:\Program Files\R\R-4.2.3\bin\x64
+
+"r.rpath": "C:\\Program Files\\R\\R-4.2.2\\bin\\R.exe"
+
+"r.rpath": "C:\Program Files\R\R-4.2.3\bin\x64\R.exe"
+
+
+
+
+
+
+"\"r.rpath\": \"C:\\Program Files\\R\\R-4.2.3\\bin\\x64\\R.exe\""
+
+
+
+
+"\"r.rpath\": \""C:\Program Files\R\R-4.2.3\bin\x64\R.exe""
+
+
+
+R: Seleccione la versión de R
+Preferences: Open User Settings
+r.rpath
+

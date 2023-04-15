@@ -1,6 +1,74 @@
 ---
-title: "HDT6-MINERIA"
-author: ""
-date: "14/04/2023"
+title: "HDT6-Modelo de regresion logistica"
+author: "Grupo9"
+date: "2023-04-14"
 output: html_document
 ---
+
+
+```{r setup, include=FALSE} # nolint
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Hoja de trabajo 6: Modelos de regresion logistica
+
+```{r message=FALSE, warning=FALSE, include=TRUE, paged.print=FALSE}
+#Librerías a utilizar
+#install.packages("dummies")  # nolint
+library(rmarkdown)
+library(ModelMetrics)
+library(ggplot2)
+library(caret)
+library(GGally)
+library(modelr)
+```
+
+
+#### 1.Cree una variable dicotómica por cada una de las categorías de la variable respuesta categórica que creó en hojas anteriores. Debería tener 3 variables dicotómicas (valores 0 y 1) una que diga si la vivienda es cara o no, media o no, económica o no.
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#Cargamos y leemos la data
+data <- read.csv('train.csv') # nolint
+data[is.na(data)] <- 0
+
+#Calculo de percentiles
+percentil <- quantile(data$SalePrice)
+
+#Creamos la variable dicotómica "Estado"
+data$Estado <- ifelse(data$SalePrice <= 129975, "Economica",
+                ifelse(data$SalePrice > 129975 & data$SalePrice <= 163000, "Intermedia", "Cara")) # nolint
+
+#Modelo de Regresion logistica
+porcentaje <- 0.7
+datos <- data
+
+#Experimento reproducible
+set.seed(123)
+
+#Variables dicotomicas
+datos$Economica <- as.numeric(datos$Estado == "Economica")
+datos$Intermedia <- as.numeric(datos$Estado == "Intermedia")
+datos$Cara <- as.numeric(datos$Estado == "Cara")
+
+head(datos, n = 3)
+```
+
+
+
+```
+
+#### 2.Use los mismos conjuntos de entrenamiento y prueba que utilizó en las hojas anteriores.
+```{r}
+corte <- sample(nrow(datos),nrow(datos)*porcentaje)
+train<-datos[corte,]
+test<-datos[-corte,]
+```
+
+#### 3.Primer modelo
+
+```{r warning=FALSE}
+#Queremos saber si una casa es cara o no
+modelo<-glm(Cara~., data = train[,c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')],family = binomial(), maxit=100)
+modelo
+```
+En este modelo lo que queremos saber es si la casa es cara o no, esto mediante las variables **'SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea'**.
+
