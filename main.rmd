@@ -1,0 +1,6 @@
+---
+title: "HDT6-MINERIA"
+author: ""
+date: "14/04/2023"
+output: html_document
+---
