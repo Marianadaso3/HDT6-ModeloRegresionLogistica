@@ -54,6 +54,7 @@ head(datos, n = 3)
 
 #### 2.Use los mismos conjuntos de entrenamiento y prueba que utilizó en las hojas anteriores.
 ```{r}
+#Utilizamos mismos conjutnos
 corte <- sample(nrow(datos),nrow(datos)*porcentaje)
 train<-datos[corte,]
 test<-datos[-corte,]
@@ -62,15 +63,15 @@ test<-datos[-corte,]
 #### 3.Primer modelo
 
 ```{r warning=FALSE}
-#Queremos saber si una casa es cara o no
+#Nos interesa saber si una casa con alto valor o no 
 modelo<-glm(Cara~., data = train[,c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')],family = binomial(), maxit=100)
 modelo
 ```
-En este modelo lo que queremos saber es si la casa es cara o no, esto mediante las variables **'SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea'**.
+Para poder conocer si la casa es de alto valor o no (es decir si es cara) hacemos uso de 7 variables que nos ayudan con el objetivo. Estas son:'SalePrice','LotArea','BsmtQual','GrLivArea','Cara','PoolArea','LotFrontage'.
 
 #### 4. Analice el modelo. Determine si hay multicolinealidad en las variables, y cuáles son las que aportan al modelo, por su valor de significación. Haga un análisis de correlación de las variables del modelo y especifique si el modelo se adapta bien a los datos. 
 ```{r message=FALSE, warning=FALSE}
-#Correlacion de las variables
+#Analisis de correlacion de las variables mencionadas
 ggpairs(datos[,c('SalePrice','GrLivArea','LotFrontage','LotArea','BsmtQual','PoolArea')])
 ```
-Como se observa en la grafica anterior la mayoria de las variables tienen una buena correlacion, sobre todo la variable **SalePrice**, no obstante la variable BsmQual y PoolArea, nos indica lo contrario, donde PoolArea tiene una correlacion muy baja. Es por ello que existe la posibilidad de eliminar la variable para la prediccion, sin embargo se decidio dejar por fines didacticos. 
+Como es posible notar, la gráfica muestra que la mayoria de las vaiables que hemos utilizado si tienene una buena correlación. La excepción que observamos es con las varibales BsmQual y PoolArea, ya que estos si muestran que su correlación no es la mejor. Este caso nos hace reconsiderar si son servibles para el análisis de predicción o no. 
