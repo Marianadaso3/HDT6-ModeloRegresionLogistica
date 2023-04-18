@@ -75,3 +75,80 @@ Para poder conocer si la casa es de alto valor o no (es decir si es cara) hacemo
 ggpairs(datos[,c('SalePrice','GrLivArea','LotFrontage','LotArea','BsmtQual','PoolArea')])
 ```
 Como es posible notar, la gráfica muestra que la mayoria de las vaiables que hemos utilizado si tienene una buena correlación. La excepción que observamos es con las varibales BsmQual y PoolArea, ya que estos si muestran que su correlación no es la mejor. Este caso nos hace reconsiderar si son servibles para el análisis de predicción o no. 
+
+#### 5.
+```{r message=FALSE, warning=FALSE, include=TRUE, paged.print=FALSE}
+library(car)
+
+library(caret)
+
+
+# Define the resampling method
+train_control <- trainControl(method = "cv", number = 10)
+
+# Fit the logistic regression model using 10-fold cross-validation
+model <- train(Cara ~ ., data = train[, c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')],
+               method = "glm",
+               trControl = train_control,
+               family = binomial())
+model
+
+
+
+# print the model summary
+summary(model)
+
+
+# Analisis de multicolinealidad
+vif(modelo)
+
+
+```
+```{r}
+# Realizamos predicciones en el conjunto de prueba
+predicciones <- predict(modelo, newdata = test[, c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')], type = "response")
+
+# Convertimos las predicciones a clasificaciones binarias
+predicciones_binarias <- ifelse(predicciones > 0.5, 1, 0)
+
+# Calculamos la precisión del modelo en el conjunto de prueba
+precision <- mean(predicciones_binarias == test$Cara)
+
+# Mostramos la precisión
+precision
+```
+
+
+
+
+
+#### 10. Modelo de árbol de decisión
+
+```{r}
+#Modelo de árbol de decisión
+library(rpart)
+library(rpart.plot)
+
+arbol <- rpart(Cara ~., data=train[,c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')], method="class")
+prp(arbol)
+
+#Modelo de Random Forest
+library(randomForest)
+
+forest <- randomForest(Cara ~., data=train[,c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')], importance=TRUE)
+print(forest)
+
+#Modelo de Naive Bayes
+library(e1071)
+
+naive <- naiveBayes(Cara ~., data=train[,c('SalePrice','GrLivArea','Cara','LotFrontage','LotArea','BsmtQual','PoolArea')], laplace=1)
+print(naive)
+
+
+```
+
+
+#### 11. El modelo de Naive Bayes nos muestra la probabilidad de que una casa sea cara o no, dadas las diferentes variables que se tienen en cuenta. En este caso, las variables que más influyen en la predicción son la calidad del sótano (BsmtQual), el área de la casa (GrLivArea) y el precio de venta (SalePrice).
+
+En conclusión, los cuatro modelos (Regresión Logística, Árbol de Decisión, Random Forest y Naive Bayes) utilizan las mismas variables para predecir si una casa es cara o no. Cada modelo ofrece información valiosa acerca de las variables más importantes en la predicción. En general, se puede observar que el precio de venta, el área de la casa y la calidad del sótano son variables importantes en todos los modelos.
+
