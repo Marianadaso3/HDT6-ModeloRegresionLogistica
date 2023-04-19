@@ -118,6 +118,190 @@ precision <- mean(predicciones_binarias == test$Cara)
 precision
 ```
 
+#### 6. Explique si hay sobreajuste (overfitting) o no (recuerde usar para esto los errores del conjunto de prueba y de entrenamiento). Muestre las curvas de aprendizaje usando los errores de los conjuntos de entrenamiento y prueba.
+
+```{r}
+# Instalar paquete si es necesario
+# install.packages("mltools")
+
+# Cargar paquetes necesarios
+library(mltools)
+
+# Función para calcular el error en los conjuntos de entrenamiento y prueba
+calcular_error <- function(data, model) {
+  predicciones <- predict(model, newdata = data, type = "response")
+  predicciones_binarias <- ifelse(predicciones > 0.5, 1, 0)
+  error <- mean(predicciones_binarias != data$Cara)
+  return(error)
+}
+
+# Inicializar vectores para almacenar errores de entrenamiento y prueba
+error_entrenamiento <- numeric()
+error_prueba <- numeric()
+
+# Iterar sobre diferentes tamaños de conjuntos de entrenamiento
+for (i in seq(0.1, 0.9, 0.1)) {
+  # Dividir los datos en conjuntos de entrenamiento y prueba
+  corte <- sample(nrow(datos), nrow(datos) * i)
+  train_temp <- datos[corte, ]
+  test_temp <- datos[-corte, ]
+  
+  # Entrenar el modelo
+  modelo_temp <- glm(Cara ~ .,
+                     data = train_temp[, c('SalePrice', 'GrLivArea', 'Cara', 'LotFrontage', 'LotArea', 'BsmtQual', 'PoolArea')],
+                     family = binomial(), maxit = 100)
+  
+  # Calcular errores de entrenamiento y prueba
+  error_entrenamiento <- c(error_entrenamiento, calcular_error(train_temp, modelo_temp))
+  error_prueba <- c(error_prueba, calcular_error(test_temp, modelo_temp))
+}
+
+# Graficar las curvas de aprendizaje
+df_curvas <- data.frame(
+  Proporcion = seq(0.1, 0.9, 0.1),
+  Error_Entrenamiento = error_entrenamiento,
+  Error_Prueba = error_prueba
+)
+
+# Graficar errores de entrenamiento y prueba en función de la proporción de datos de entrenamiento
+ggplot(df_curvas, aes(x = Proporcion)) +
+  geom_line(aes(y = Error_Entrenamiento, color = "Entrenamiento")) +
+  geom_line(aes(y = Error_Prueba, color = "Prueba")) +
+  labs(x = "Proporción de datos de entrenamiento",
+       y = "Error",
+       title = "Curvas de aprendizaje",
+       color = "Conjunto") +
+  theme_minimal()
+
+```
+
+En este análisis se observa que las curvas de error de entrenamiento y prueba tienen comportamientos irregulares con picos y valles a lo largo de diferentes proporciones de datos de entrenamiento. A pesar de que la curva de error de entrenamiento se mantiene en cero en gran parte del rango, lo que sugiere un sobreajuste, la curva de error de prueba no muestra un comportamiento consistente de ser alta en comparación con la de entrenamiento. Aunque hay algunos picos en el error de prueba, también se observan momentos en los que el error de prueba es bajo, lo que sugiere que el modelo es capaz de generalizar en cierta medida. En general, no hay un claro sobreajuste en este modelo, aunque es importante considerar la aleatoriedad en la división de los datos y la elección de hiperparámetros.
+
+### ７ Haga otros dos modelos cambiando las variables predictoras de acuerdo con la significación
+de los coeficientes en el primer modelo. Explique por qué seleccionó las variables que uso
+para cada modelo.
+
+```{r}
+
+# Modelo 2: usando las tres variables predictoras más significativas
+modelo2 <- glm(Cara ~ SalePrice + GrLivArea + LotFrontage,
+               data = train[, c('SalePrice', 'GrLivArea', 'Cara', 'LotFrontage')],
+               family = binomial(), maxit = 100)
+
+summary(modelo2)
+
+# Modelo 3: usando las cuatro variables predictoras más significativas
+modelo3 <- glm(Cara ~ SalePrice + GrLivArea + LotFrontage + LotArea,
+               data = train[, c('SalePrice', 'GrLivArea', 'Cara', 'LotFrontage', 'LotArea')],
+               family = binomial(), maxit = 100)
+
+summary(modelo3)
+
+
+```
+
+Después de analizar los coeficientes del primer modelo, decidí seleccionar variables basándome en su significación. Descubrí que las variables con valores p más bajos, como SalePrice, GrLivArea, LotFrontage y LotArea, eran las más significativas para predecir la variable de respuesta. Por lo tanto, elegí estas variables para el segundo y tercer modelos, ya que se espera que sean más efectivas en la predicción de nuevas observaciones. Al seleccionar solo las variables más significativas, se espera que los modelos sean más simples y precisos.
+
+#### 8 
+Haga un análisis de la eficiencia del algoritmo usando una matriz de confusión. Tenga en
+cuenta la efectividad, donde el algoritmo se equivocó más, donde se equivocó menos y la
+importancia que tienen los errores, el tiempo y la memoria consumida. Para esto último
+puede usar “profvis” si trabaja con R y “cProfile” en Python.
+
+
+```{r}
+# Predicciones para el modelo 2
+predicciones_modelo2 <- predict(modelo2, newdata = test[, c('SalePrice', 'GrLivArea', 'LotFrontage')], type = "response")
+predicciones_binarias_modelo2 <- ifelse(predicciones_modelo2 > 0.5, 1, 0)
+
+# Matriz de confusión para el modelo 2
+matriz_confusion_modelo2 <- confusionMatrix(factor(predicciones_binarias_modelo2), factor(test$Cara))
+matriz_confusion_modelo2
+
+# Predicciones para el modelo 3
+predicciones_modelo3 <- predict(modelo3, newdata = test[, c('SalePrice', 'GrLivArea', 'LotFrontage', 'LotArea')], type = "response")
+predicciones_binarias_modelo3 <- ifelse(predicciones_modelo3 > 0.5, 1, 0)
+
+# Matriz de confusión para el modelo 3
+matriz_confusion_modelo3 <- confusionMatrix(factor(predicciones_binarias_modelo3), factor(test$Cara))
+matriz_confusion_modelo3
+
+
+
+```
+
+
+El algoritmo muestra una eficiencia excepcionalmente alta, con una precisión del 100%, lo que significa que todas las predicciones realizadas fueron correctas. La matriz de confusión indica que no hubo errores de tipo I (falsos positivos) ni errores de tipo II (falsos negativos). La sensibilidad y la especificidad del modelo también son del 100%, lo que indica una capacidad perfecta para identificar tanto casas caras como no caras correctamente. Sin embargo, este tipo de rendimiento tan perfecto puede ser sospechoso de sobreajuste, ya que es raro que un modelo tenga una precisión del 100% en datos no vistos. 
+
+
+
+
+### 9
+
+Determine cual de todos los modelos es mejor, puede usar AIC y BIC para esto, además de
+los parámetros de la matriz de confusión y los del profiler.
+
+
+```{r}
+# Calcular AIC y BIC para los tres modelos
+aic_modelo1 <- AIC(modelo)
+bic_modelo1 <- BIC(modelo)
+
+aic_modelo2 <- AIC(modelo2)
+bic_modelo2 <- BIC(modelo2)
+
+aic_modelo3 <- AIC(modelo3)
+bic_modelo3 <- BIC(modelo3)
+
+# Crear un marco de datos con los valores de AIC y BIC para cada modelo
+comparacion <- data.frame(
+  Modelo = c("Modelo 1", "Modelo 2", "Modelo 3"),
+  AIC = c(aic_modelo1, aic_modelo2, aic_modelo3),
+  BIC = c(bic_modelo1, bic_modelo2, bic_modelo3)
+)
+
+# Mostrar la tabla de comparación
+comparacion
+
+
+```
+
+
+Como podemos observar, de acuerdo con los valores de AIC y BIC, el Modelo 2 es el mejor, ya que tiene los valores más bajos tanto para el AIC como para el BIC en comparación con los otros modelos. Esto indica que el Modelo 2 es el modelo más adecuado y simple para predecir la variable objetivo entre los tres modelos que hemos construido.
+
+El Modelo 2 utiliza las tres variables predictoras más significativas, que son 'SalePrice', 'GrLivArea' y 'LotFrontage'. Aunque el Modelo 3 también tiene un AIC y BIC relativamente bajos, el Modelo 2 es preferible debido a su simplicidad y menor número de variables predictoras. Por lo tanto, el Modelo 2 es la opción más recomendada para predecir si una casa es cara o no.
+
+
+```{}
+# AIC y BIC para modelo 1
+AIC_modelo1 <- AIC(modelo)
+BIC_modelo1 <- BIC(modelo)
+
+# AIC y BIC para modelo 2
+AIC_modelo2 <- AIC(modelo2)
+BIC_modelo2 <- BIC(modelo2)
+
+# AIC y BIC para modelo 3
+AIC_modelo3 <- AIC(modelo3)
+BIC_modelo3 <- BIC(modelo3)
+
+# Comparación de AIC y BIC
+data.frame(Modelo = c("Modelo 1", "Modelo 2", "Modelo 3"),
+           AIC = c(AIC_modelo1, AIC_modelo2, AIC_modelo3),
+           BIC = c(BIC_modelo1, BIC_modelo2, BIC_modelo3))
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
